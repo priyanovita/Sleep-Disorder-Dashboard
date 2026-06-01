@@ -1,5 +1,6 @@
 # ============================================================
 # app.py — Sleep Disorder Classification Dashboard
+# Kelompok 17 | Python Data Science Final Project
 # Streamlit Cloud ready — NO kagglehub, NO external .pkl
 # ============================================================
 
@@ -31,57 +32,118 @@ except ImportError:
 
 # ─── Page Config ──────────────────────────────────────────────
 st.set_page_config(
-    page_title="Sleep Disorder Dashboard",
+    page_title="Sleep Disorder | Kel. 17",
     page_icon="🌙",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
+# ─── CSS ──────────────────────────────────────────────────────
+# Paksa dark mode agar teks selalu terbaca regardless mode system
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
-html, body, [class*="css"] { font-family: 'Nunito', sans-serif; }
-.stApp { background: linear-gradient(135deg, #0f1117 0%, #1a1f2e 100%); }
 
-/* ── Ringkasan Indikator (Beranda) ── */
+/* Force dark everywhere — fixes light-mode unreadable text (gambar 3) */
+html, body, [data-testid="stAppViewContainer"],
+[data-testid="stSidebar"], [data-testid="stHeader"],
+[class*="css"], .stApp {
+    font-family: 'Nunito', sans-serif !important;
+    background-color: #0f1117 !important;
+    color: #e2e8f0 !important;
+}
+[data-testid="stSidebar"] { background: #111827 !important; }
+
+/* Radio & text in sidebar always visible */
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] p,
+[data-testid="stSidebar"] span,
+[data-testid="stSidebar"] div { color: #e2e8f0 !important; }
+
+/* Inputs & selects */
+input, textarea, select,
+[data-baseweb="input"] input,
+[data-baseweb="select"] div {
+    background-color: #1e2a3a !important;
+    color: #f1f5f9 !important;
+    border-color: #2a4a6e !important;
+}
+[data-testid="stNumberInput"] input { color: #f1f5f9 !important; }
+
+/* Slider label */
+[data-testid="stSlider"] label,
+[data-testid="stSelectbox"] label,
+[data-testid="stNumberInput"] label { color: #94a3b8 !important; }
+
+/* ── KPI section (Beranda) ── */
 .kpi-section {
     background: linear-gradient(135deg, #111827, #1e2a3a);
     border: 1px solid #2a4a6e;
     border-radius: 20px;
     padding: 28px 36px;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
 }
 .kpi-title {
-    font-size: 1.3rem; font-weight: 800;
+    font-size: 1.25rem; font-weight: 800;
     color: #e2e8f0; margin-bottom: 20px;
-    display: flex; align-items: center; gap: 10px;
 }
-.kpi-grid { display: flex; gap: 0; }
+.kpi-grid { display: flex; gap: 0; flex-wrap: wrap; }
 .kpi-item {
-    flex: 1;
+    flex: 1; min-width: 130px;
     border-right: 1px solid #2a4a6e;
     padding: 0 28px;
 }
 .kpi-item:first-child { padding-left: 0; }
 .kpi-item:last-child  { border-right: none; }
-.kpi-label { font-size: 0.78rem; color: #64748b; margin-bottom: 6px; letter-spacing: 0.03em; }
-.kpi-value { font-size: 2rem; font-weight: 800; color: #f1f5f9; line-height: 1.1; }
-.kpi-unit  { font-size: 1rem; font-weight: 600; color: #94a3b8; margin-left: 4px; }
+.kpi-label { font-size: 0.75rem; color: #64748b; margin-bottom: 6px; }
+.kpi-value { font-size: 1.9rem; font-weight: 800; color: #f1f5f9; line-height: 1.1; }
+.kpi-unit  { font-size: 0.95rem; color: #94a3b8; margin-left: 4px; }
+
+/* ── Project Info card ── */
+.proj-card {
+    background: #111827;
+    border: 1px solid #2a4a6e;
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+}
+.proj-card h4 { color: #4fc3f7; margin: 0 0 12px 0; font-size: 1rem; }
+.proj-card p  { color: #94a3b8; margin: 4px 0; font-size: 0.85rem; line-height: 1.6; }
+.proj-card .highlight { color: #e2e8f0; font-weight: 700; }
+
+/* ── Timeline cards (gambar 5 style) ── */
+.timeline-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+}
+.tl-card {
+    background: #111827;
+    border: 1px solid #1e3a5f;
+    border-radius: 12px;
+    padding: 16px;
+    border-top: 3px solid #22c55e;
+}
+.tl-card.row2 { border-top-color: #3b82f6; }
+.tl-num  { font-size: 0.7rem; font-weight: 700; color: #22c55e; letter-spacing: 0.08em; margin-bottom: 6px; }
+.tl-card.row2 .tl-num { color: #3b82f6; }
+.tl-name { font-size: 0.9rem; font-weight: 700; color: #f1f5f9; margin-bottom: 6px; }
+.tl-desc { font-size: 0.75rem; color: #64748b; line-height: 1.5; }
 
 /* ── Prediction box ── */
 .pred-box {
-    border-radius: 16px; padding: 24px; text-align: center;
-    font-size: 1.5rem; font-weight: 800; margin: 16px 0;
+    border-radius: 14px; padding: 22px; text-align: center;
+    font-size: 1.4rem; font-weight: 800; margin: 14px 0;
 }
-.pred-normal  { background:linear-gradient(135deg,#14532d,#166534); color:#86efac; border:2px solid #22c55e; }
-.pred-insomnia{ background:linear-gradient(135deg,#3b0764,#6b21a8); color:#d8b4fe; border:2px solid #a855f7; }
-.pred-apnea   { background:linear-gradient(135deg,#7f1d1d,#991b1b); color:#fca5a5; border:2px solid #ef4444; }
+.pred-normal   { background:#14532d; color:#86efac; border:2px solid #22c55e; }
+.pred-insomnia { background:#3b0764; color:#d8b4fe; border:2px solid #a855f7; }
+.pred-apnea    { background:#7f1d1d; color:#fca5a5; border:2px solid #ef4444; }
 
 /* ── BMI pill ── */
 .bmi-pill {
-    display: inline-block;
-    padding: 6px 18px; border-radius: 999px;
-    font-weight: 700; font-size: 0.9rem; margin-top: 8px;
+    display:inline-block; padding:5px 16px;
+    border-radius:999px; font-weight:700; font-size:0.85rem;
 }
 .bmi-normal    { background:#14532d; color:#86efac; border:1px solid #22c55e; }
 .bmi-overweight{ background:#78350f; color:#fcd34d; border:1px solid #f59e0b; }
@@ -101,12 +163,11 @@ h2, h3 { color: #81d4fa !important; }
 </style>
 """, unsafe_allow_html=True)
 
-# ─── Helper: BMI Calculator ───────────────────────────────────
+# ─── Helper Functions ─────────────────────────────────────────
 def calc_bmi(weight_kg, height_cm):
     if height_cm <= 0:
-        return 0, "Normal"
-    h_m = height_cm / 100
-    bmi = weight_kg / (h_m ** 2)
+        return 0.0, "Normal"
+    bmi = weight_kg / ((height_cm / 100) ** 2)
     if bmi < 18.5:
         cat = "Underweight"
     elif bmi < 25.0:
@@ -117,67 +178,67 @@ def calc_bmi(weight_kg, height_cm):
         cat = "Obese"
     return round(bmi, 1), cat
 
-# Map BMI category to dataset labels (dataset uses "Normal Weight" sometimes)
-def map_bmi_to_dataset(bmi_cat, le_bmi_classes):
-    mapping = {
+def map_bmi_to_dataset(bmi_cat, le_classes):
+    """Map calculated BMI category to nearest label in dataset's LabelEncoder."""
+    # Dataset has: Normal, Normal Weight, Overweight, Obese
+    priority = {
         "Normal":      ["Normal", "Normal Weight"],
-        "Underweight": ["Normal", "Normal Weight"],   # fallback ke Normal
+        "Underweight": ["Normal Weight", "Normal"],
         "Overweight":  ["Overweight"],
         "Obese":       ["Obese"],
     }
-    for candidate in mapping.get(bmi_cat, ["Normal"]):
-        if candidate in le_bmi_classes:
-            return candidate
-    return le_bmi_classes[0]
+    for cand in priority.get(bmi_cat, ["Normal"]):
+        if cand in le_classes:
+            return cand
+    return le_classes[0]
 
 # ─── Load Dataset ─────────────────────────────────────────────
 @st.cache_data
 def load_and_prepare_data():
-    candidate_paths = [
+    paths = [
         "Sleep_health_and_lifestyle_dataset.csv",
         "data/Sleep_health_and_lifestyle_dataset.csv",
         "dataset/Sleep_health_and_lifestyle_dataset.csv",
     ]
     df = None
-    for p in candidate_paths:
+    for p in paths:
         if os.path.exists(p):
             df = pd.read_csv(p)
             break
 
     if df is None:
-        st.warning("⚠️ CSV tidak ditemukan — menggunakan data sintetis.")
+        st.warning("⚠️ CSV tidak ditemukan — menggunakan data sintetis untuk demo.")
         np.random.seed(42)
         n = 374
         df = pd.DataFrame({
             "Person ID": range(1, n+1),
-            "Gender": np.random.choice(["Male","Female"], n),
-            "Age": np.random.randint(25, 60, n),
-            "Occupation": np.random.choice(["Nurse","Doctor","Engineer","Teacher",
-                                             "Accountant","Lawyer","Salesperson",
-                                             "Software Engineer","Scientist","Manager"], n),
-            "Sleep Duration": np.round(np.random.uniform(5.8, 8.5, n), 1),
-            "Quality of Sleep": np.random.randint(4, 10, n),
+            "Gender":    np.random.choice(["Male","Female"], n),
+            "Age":       np.random.randint(25, 60, n),
+            "Occupation": np.random.choice([
+                "Nurse","Doctor","Engineer","Teacher","Accountant",
+                "Lawyer","Salesperson","Software Engineer","Scientist","Manager"], n),
+            "Sleep Duration":          np.round(np.random.uniform(5.8, 8.5, n), 1),
+            "Quality of Sleep":        np.random.randint(4, 10, n),
             "Physical Activity Level": np.random.randint(30, 90, n),
-            "Stress Level": np.random.randint(3, 9, n),
-            "BMI Category": np.random.choice(["Normal","Overweight","Obese"], n),
+            "Stress Level":            np.random.randint(3, 9, n),
+            "BMI Category":  np.random.choice(["Normal","Normal Weight","Overweight","Obese"], n),
             "Blood Pressure": [f"{np.random.randint(115,140)}/{np.random.randint(75,95)}" for _ in range(n)],
-            "Heart Rate": np.random.randint(65, 86, n),
+            "Heart Rate":  np.random.randint(65, 86, n),
             "Daily Steps": np.random.randint(3000, 10001, n),
-            "Sleep Disorder": np.random.choice(["Normal","Insomnia","Sleep Apnea"], n, p=[0.585,0.206,0.209]),
+            "Sleep Disorder": np.random.choice(
+                ["Normal","Insomnia","Sleep Apnea"], n, p=[0.585,0.206,0.209]),
         })
 
     df.columns = [c.strip().replace(" ", "_") for c in df.columns]
+    # KEY FIX: NaN = tidak ada gangguan = Normal
     df["Sleep_Disorder"] = df["Sleep_Disorder"].fillna("Normal")
 
     if "Blood_Pressure" in df.columns:
         df[["Systolic_BP","Diastolic_BP"]] = (
-            df["Blood_Pressure"].str.split("/", expand=True).astype(int)
-        )
+            df["Blood_Pressure"].str.split("/", expand=True).astype(int))
         df.drop(columns=["Blood_Pressure"], inplace=True)
-
     if "Person_ID" in df.columns:
         df.drop(columns=["Person_ID"], inplace=True)
-
     return df
 
 
@@ -196,8 +257,6 @@ def train_models(_df):
     df["BMI_Category_enc"] = le_bmi.fit_transform(df["BMI_Category"])
     df["Target_enc"]       = le_target.fit_transform(df["Sleep_Disorder"])
 
-    # Fitur tanpa Blood Pressure (dihapus dari prediksi user)
-    # Tapi tetap dipakai saat training karena ada di dataset
     feature_cols = [
         "Age", "Sleep_Duration", "Quality_of_Sleep", "Physical_Activity_Level",
         "Stress_Level", "Heart_Rate", "Daily_Steps",
@@ -209,8 +268,7 @@ def train_models(_df):
     y = df["Target_enc"]
 
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42, stratify=y
-    )
+        X, y, test_size=0.2, random_state=42, stratify=y)
 
     scaler    = StandardScaler()
     X_train_s = scaler.fit_transform(X_train)
@@ -222,7 +280,7 @@ def train_models(_df):
     else:
         X_tr, y_tr = X_train_s, y_train
 
-    models = {
+    models_dict = {
         "Logistic Regression": LogisticRegression(max_iter=500, random_state=42),
         "Decision Tree":       DecisionTreeClassifier(max_depth=5, random_state=42),
         "Random Forest":       RandomForestClassifier(n_estimators=200, random_state=42, n_jobs=-1),
@@ -233,7 +291,7 @@ def train_models(_df):
     }
 
     results = {}
-    for name, mdl in models.items():
+    for name, mdl in models_dict.items():
         mdl.fit(X_tr, y_tr)
         y_pred = mdl.predict(X_test_s)
         results[name] = {
@@ -260,10 +318,9 @@ def train_models(_df):
     }
 
 
-# ─── Load & Train ─────────────────────────────────────────────
+# ─── Bootstrap ────────────────────────────────────────────────
 df = load_and_prepare_data()
-
-with st.spinner("🔄 Melatih model ML... (hanya sekali saat pertama)"):
+with st.spinner("🔄 Melatih model ML... (hanya sekali saat pertama load)"):
     artifacts = train_models(df)
 
 model      = artifacts["best_model"]
@@ -272,23 +329,30 @@ le_tgt     = artifacts["le_target"]
 le_gen     = artifacts["le_gender"]
 le_occ     = artifacts["le_occupation"]
 le_bmi_enc = artifacts["le_bmi"]
-feat_cols  = artifacts["feature_cols"]
 best_name  = artifacts["best_name"]
+best_acc   = artifacts["models"][best_name]["acc"]
 
-# ─── Sidebar: Navigasi saja ───────────────────────────────────
+
+# ─── Sidebar ──────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("## 🌙 Sleep Disorder")
-    st.caption("Classification Dashboard")
+    st.markdown(
+        "<small style='color:#64748b;'>Python Data Science Final Project</small>",
+        unsafe_allow_html=True)
     st.divider()
     page = st.radio("📌 Navigasi", [
         "🏠 Beranda",
         "📊 EDA & Visualisasi",
         "🤖 Prediksi Gangguan Tidur",
-        "📈 Evaluasi Model"
+        "📈 Evaluasi Model",
     ])
     st.divider()
-    st.info(f"🏆 **Model Terbaik:**\n{best_name}\n\n"
-            f"✅ Akurasi: {artifacts['models'][best_name]['acc']:.2%}")
+    st.markdown(f"""
+    <div style="background:#1e2a3a;border:1px solid #2a4a6e;border-radius:12px;padding:14px 16px;">
+      <div style="color:#f59e0b;font-weight:700;font-size:0.85rem;">🏆 Model Terbaik:</div>
+      <div style="color:#4fc3f7;font-weight:800;font-size:0.95rem;margin:4px 0;">{best_name}</div>
+      <div style="color:#22c55e;font-size:0.85rem;">✅ Akurasi: {best_acc:.2%}</div>
+    </div>""", unsafe_allow_html=True)
     st.caption("Dataset: Sleep Health & Lifestyle | Kaggle")
 
 
@@ -296,21 +360,22 @@ with st.sidebar:
 # PAGE 1 — BERANDA
 # ════════════════════════════════════════════════════════════
 if page == "🏠 Beranda":
-    st.title("🌙 Klasifikasi Gangguan Tidur")
-    st.markdown("##### Machine Learning Berdasarkan Data Kesehatan & Gaya Hidup")
+    st.title("🌙 Sleep Disorder Classification")
+    st.markdown(
+        "<span style='color:#64748b;font-size:0.9rem;'>Python Data Science Final Project</span>",
+        unsafe_allow_html=True)
     st.divider()
 
+    # ── KPI Ringkasan ──
     vc         = df["Sleep_Disorder"].value_counts()
-    n_normal   = vc.get("Normal", 0)
-    n_insomnia = vc.get("Insomnia", 0)
-    n_apnea    = vc.get("Sleep Apnea", 0)
+    n_normal   = int(vc.get("Normal", 0))
+    n_insomnia = int(vc.get("Insomnia", 0))
+    n_apnea    = int(vc.get("Sleep Apnea", 0))
     total      = len(df)
-
     avg_sleep  = df["Sleep_Duration"].mean()
     avg_stress = df["Stress_Level"].mean()
     avg_hr     = df["Heart_Rate"].mean()
 
-    # ── Ringkasan Indikator Kesehatan Utama (style gambar 2) ──
     st.markdown(f"""
     <div class="kpi-section">
       <div class="kpi-title">🎯 Ringkasan Indikator Kesehatan Utama</div>
@@ -335,29 +400,43 @@ if page == "🏠 Beranda":
     </div>
     """, unsafe_allow_html=True)
 
+    # ── Info Proyek ──
     col_l, col_r = st.columns([3, 2])
 
     with col_l:
-        st.subheader("📖 Tentang Proyek")
         st.markdown("""
-        Dashboard ini mengimplementasikan **7 algoritma Machine Learning**
-        untuk mengklasifikasikan gangguan tidur berdasarkan data kesehatan & gaya hidup.
+        <div class="proj-card">
+          <h4>📌 Informasi Proyek</h4>
+          <p><span class="highlight">Judul:</span><br>
+             Klasifikasi Gangguan Tidur Menggunakan Machine Learning<br>
+             Berdasarkan Data Kesehatan dan Gaya Hidup</p>
+          <p style="margin-top:10px;"><span class="highlight">Sumber Dataset:</span><br>
+             Kaggle Core API — <code style="color:#4fc3f7;font-size:0.8rem;">uom190346a/sleep-health-and-lifestyle-dataset</code></p>
+          <p style="margin-top:10px;"><span class="highlight">Final Project:</span> Kelompok 17</p>
+          <p style="margin-top:8px;"><span class="highlight">Anggota:</span><br>
+             • Priya Novitasari Dwi Yanti<br>
+             • Syahreza Bantara Yudha<br>
+             • Qoimam Bilqisth Az Zuhri<br>
+             • Nuaimah Hafifatul Husna
+          </p>
+        </div>
+        """, unsafe_allow_html=True)
 
-        **Target Klasifikasi:**
-        - 🟢 **Normal** — Tidak ada gangguan tidur *(NaN di dataset = Normal)*
-        - 🟣 **Insomnia** — Kesulitan tidur / durasi tidur tidak cukup
-        - 🔴 **Sleep Apnea** — Gangguan pernapasan saat tidur
-
-        **Metodologi (10 Pertemuan):**
-        Mencakup EDA, preprocessing, SMOTE, Decision Tree, Random Forest,
-        KNN, Naive Bayes, SVM, Gradient Boosting, dan evaluasi model lengkap.
-        """)
+        st.markdown("""
+        <div class="proj-card" style="margin-top:12px;">
+          <h4>🎯 Target Klasifikasi</h4>
+          <p>🟢 <span class="highlight">Normal</span> — Tidak ada gangguan tidur<br>
+             &nbsp;&nbsp;&nbsp;&nbsp;<em>(NaN di dataset = Normal/tidak terdiagnosis)</em></p>
+          <p>🟣 <span class="highlight">Insomnia</span> — Kesulitan tidur / durasi tidak cukup</p>
+          <p>🔴 <span class="highlight">Sleep Apnea</span> — Gangguan pernapasan saat tidur</p>
+        </div>
+        """, unsafe_allow_html=True)
 
     with col_r:
         fig_pie = px.pie(
             values=[n_normal, n_insomnia, n_apnea],
             names=["Normal", "Insomnia", "Sleep Apnea"],
-            color_discrete_sequence=["#4caf50","#ab47bc","#ff7043"],
+            color_discrete_sequence=["#22c55e","#a855f7","#ef4444"],
             title="Distribusi Sleep Disorder",
             hole=0.45,
         )
@@ -371,13 +450,17 @@ if page == "🏠 Beranda":
 
 
 # ════════════════════════════════════════════════════════════
-# PAGE 2 — EDA (tanpa sidebar filter — cukup widget inline)
+# PAGE 2 — EDA
 # ════════════════════════════════════════════════════════════
 elif page == "📊 EDA & Visualisasi":
     st.title("📊 Eksplorasi Data (EDA)")
     st.divider()
 
     t1, t2, t3, t4 = st.tabs(["📋 Overview", "📈 Distribusi", "🔗 Korelasi", "🧩 Pola Kelompok"])
+
+    COLORS = ["#22c55e","#a855f7","#ef4444"]
+    LAYOUT = dict(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                  font_color="#90a4ae", title_font_color="#81d4fa")
 
     with t1:
         c1, c2 = st.columns(2)
@@ -391,49 +474,39 @@ elif page == "📊 EDA & Visualisasi":
 
     with t2:
         col_sel = st.selectbox("Pilih Fitur:", [
-            "Sleep_Duration", "Quality_of_Sleep", "Age",
-            "Physical_Activity_Level", "Stress_Level", "Heart_Rate", "Daily_Steps"
+            "Sleep_Duration","Quality_of_Sleep","Age",
+            "Physical_Activity_Level","Stress_Level","Heart_Rate","Daily_Steps"
         ])
         c1, c2 = st.columns(2)
         with c1:
             fig = px.histogram(df, x=col_sel, color="Sleep_Disorder", barmode="overlay",
-                               color_discrete_sequence=["#4caf50","#ab47bc","#ff7043"],
-                               title=f"Distribusi {col_sel}", nbins=30)
-            fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                              font_color="#90a4ae", title_font_color="#81d4fa")
+                               color_discrete_sequence=COLORS, title=f"Distribusi {col_sel}", nbins=30)
+            fig.update_layout(**LAYOUT)
             st.plotly_chart(fig, use_container_width=True)
         with c2:
             fig2 = px.box(df, x="Sleep_Disorder", y=col_sel, color="Sleep_Disorder",
-                          color_discrete_sequence=["#4caf50","#ab47bc","#ff7043"],
-                          title=f"Boxplot {col_sel}")
-            fig2.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                               font_color="#90a4ae", title_font_color="#81d4fa", showlegend=False)
+                          color_discrete_sequence=COLORS, title=f"Boxplot {col_sel}")
+            fig2.update_layout(**LAYOUT, showlegend=False)
             st.plotly_chart(fig2, use_container_width=True)
 
         c1, c2 = st.columns(2)
         with c1:
             fig3 = px.histogram(df, x="Gender", color="Sleep_Disorder", barmode="group",
-                                color_discrete_sequence=["#4caf50","#ab47bc","#ff7043"],
-                                title="Gender vs Sleep Disorder")
-            fig3.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                               font_color="#90a4ae", title_font_color="#81d4fa")
+                                color_discrete_sequence=COLORS, title="Gender vs Sleep Disorder")
+            fig3.update_layout(**LAYOUT)
             st.plotly_chart(fig3, use_container_width=True)
         with c2:
             fig4 = px.histogram(df, x="BMI_Category", color="Sleep_Disorder", barmode="group",
-                                color_discrete_sequence=["#4caf50","#ab47bc","#ff7043"],
-                                title="BMI Category vs Sleep Disorder")
-            fig4.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                               font_color="#90a4ae", title_font_color="#81d4fa")
+                                color_discrete_sequence=COLORS, title="BMI vs Sleep Disorder")
+            fig4.update_layout(**LAYOUT)
             st.plotly_chart(fig4, use_container_width=True)
 
     with t3:
         df_enc = artifacts["df_encoded"]
-        num_df = df_enc.select_dtypes(include=np.number)
-        corr   = num_df.corr()
+        corr   = df_enc.select_dtypes(include=np.number).corr()
         fig_hm = px.imshow(corr, text_auto=".2f", color_continuous_scale="RdBu_r",
                            title="Heatmap Korelasi", aspect="auto", zmin=-1, zmax=1)
-        fig_hm.update_layout(paper_bgcolor="rgba(0,0,0,0)", font_color="#90a4ae",
-                             title_font_color="#81d4fa")
+        fig_hm.update_layout(**LAYOUT)
         st.plotly_chart(fig_hm, use_container_width=True)
 
         if "Target_enc" in corr.columns:
@@ -441,40 +514,40 @@ elif page == "📊 EDA & Visualisasi":
             fig_top = px.bar(x=top.values, y=top.index, orientation="h",
                              color=top.values, color_continuous_scale="Blues",
                              title="Korelasi Fitur terhadap Sleep Disorder",
-                             labels={"x":"Korelasi Absolut","y":"Fitur"})
-            fig_top.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                                  font_color="#90a4ae", title_font_color="#81d4fa")
+                             labels={"x":"Abs. Korelasi","y":""})
+            fig_top.update_layout(**LAYOUT)
             st.plotly_chart(fig_top, use_container_width=True)
 
     with t4:
         c1, c2 = st.columns(2)
         with c1:
             fig5 = px.histogram(df, x="Occupation", color="Sleep_Disorder", barmode="stack",
-                                color_discrete_sequence=["#4caf50","#ab47bc","#ff7043"],
-                                title="Pekerjaan vs Sleep Disorder")
-            fig5.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                               font_color="#90a4ae", title_font_color="#81d4fa", xaxis_tickangle=-35)
+                                color_discrete_sequence=COLORS, title="Pekerjaan vs Sleep Disorder")
+            fig5.update_layout(**LAYOUT, xaxis_tickangle=-35)
             st.plotly_chart(fig5, use_container_width=True)
         with c2:
             fig6 = px.scatter(df, x="Sleep_Duration", y="Quality_of_Sleep",
                               color="Sleep_Disorder", size="Stress_Level",
-                              color_discrete_sequence=["#4caf50","#ab47bc","#ff7043"],
+                              color_discrete_sequence=COLORS,
                               title="Durasi vs Kualitas Tidur (ukuran = Stres)")
-            fig6.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                               font_color="#90a4ae", title_font_color="#81d4fa")
+            fig6.update_layout(**LAYOUT)
             st.plotly_chart(fig6, use_container_width=True)
 
 
 # ════════════════════════════════════════════════════════════
 # PAGE 3 — PREDIKSI
+# FIX: detak jantung pakai number_input, prediksi diperbaiki
 # ════════════════════════════════════════════════════════════
 elif page == "🤖 Prediksi Gangguan Tidur":
     st.title("🤖 Prediksi Gangguan Tidur")
-    st.markdown("Isi data di bawah untuk mengetahui apakah kamu berisiko mengalami gangguan tidur.")
+    st.markdown(
+        "<span style='color:#64748b;'>Isi data di bawah untuk mengetahui "
+        "apakah kamu berisiko mengalami gangguan tidur.</span>",
+        unsafe_allow_html=True)
     st.divider()
 
     with st.form("pred_form"):
-        # ── Baris 1: Data Pribadi ──
+        # ── Data Pribadi ──────────────────────────────────
         st.subheader("👤 Data Pribadi")
         c1, c2, c3 = st.columns(3)
         with c1:
@@ -484,98 +557,130 @@ elif page == "🤖 Prediksi Gangguan Tidur":
         with c3:
             occupation = st.selectbox("Pekerjaan", sorted(le_occ.classes_.tolist()))
 
-        # ── Baris 2: Tubuh → kalkulasi BMI ──
+        # ── Data Tubuh ────────────────────────────────────
         st.subheader("⚖️ Data Tubuh")
         c1, c2 = st.columns(2)
         with c1:
-            weight_kg  = st.number_input("Berat Badan (kg)", 30.0, 200.0, 70.0, 0.5)
+            weight_kg = st.number_input("Berat Badan (kg)", 30.0, 200.0, 70.0, 0.5,
+                                        format="%.1f")
         with c2:
-            height_cm  = st.number_input("Tinggi Badan (cm)", 100.0, 220.0, 170.0, 0.5)
+            height_cm = st.number_input("Tinggi Badan (cm)", 100.0, 220.0, 170.0, 0.5,
+                                        format="%.1f")
 
-        # ── Baris 3: Pola Tidur ──
+        # ── Pola Tidur ────────────────────────────────────
         st.subheader("😴 Pola Tidur")
         c1, c2, c3 = st.columns(3)
         with c1:
-            sleep_dur  = st.slider("Durasi Tidur (jam)", 4.0, 10.0, 7.0, 0.1)
+            sleep_dur = st.slider("Durasi Tidur (jam)", 4.0, 10.0, 7.0, 0.1)
         with c2:
-            quality    = st.slider("Kualitas Tidur (1–10)", 1, 10, 7)
+            quality   = st.slider("Kualitas Tidur (1–10)", 1, 10, 7)
         with c3:
-            stress     = st.slider("Tingkat Stres (1–10)", 1, 10, 5)
+            stress    = st.slider("Tingkat Stres (1–10)", 1, 10, 5)
 
-        # ── Baris 4: Aktivitas ──
+        # ── Aktivitas & Detak Jantung ─────────────────────
         st.subheader("💪 Aktivitas & Detak Jantung")
         c1, c2, c3 = st.columns(3)
         with c1:
-            activity   = st.slider("Aktivitas Fisik (menit/hari)", 0, 90, 45)
+            activity = st.slider("Aktivitas Fisik (menit/hari)", 0, 90, 45)
         with c2:
-            steps      = st.number_input("Langkah Harian", 1000, 20000, 7000, 500)
+            steps    = st.number_input("Langkah Harian", min_value=1000,
+                                       max_value=20000, value=7000, step=500)
         with c3:
-            hr         = st.slider("Detak Jantung Istirahat (bpm)", 55, 100, 70)
+            # FIX: number_input, bukan slider
+            hr = st.number_input("Detak Jantung Istirahat (bpm)",
+                                  min_value=40, max_value=120, value=70, step=1)
 
-        submitted = st.form_submit_button("⚡ Jalankan Komputasi Diagnosis Klasifikasi",
-                                          use_container_width=True)
+        submitted = st.form_submit_button(
+            "⚡ Jalankan Komputasi Diagnosis Klasifikasi",
+            use_container_width=True)
 
-    # ── Preview BMI real-time (di luar form) ──
-    bmi_val, bmi_cat = calc_bmi(weight_kg if 'weight_kg' in dir() else 70,
-                                 height_cm if 'height_cm' in dir() else 170)
+    # ── BMI preview (live, di luar form) ─────────────────
+    bmi_val, bmi_cat = calc_bmi(weight_kg, height_cm)
     bmi_css = {"Normal":"bmi-normal","Underweight":"bmi-under",
-                "Overweight":"bmi-overweight","Obese":"bmi-obese"}.get(bmi_cat, "bmi-normal")
+               "Overweight":"bmi-overweight","Obese":"bmi-obese"}.get(bmi_cat,"bmi-normal")
     st.markdown(f"""
     <div style="background:#111827;border:1px solid #2a4a6e;border-radius:12px;
-                padding:14px 20px;margin-top:12px;display:flex;align-items:center;gap:12px;">
-      <span style="font-size:1.5rem;">⚖️</span>
-      <span style="color:#94a3b8;font-size:0.9rem;">Kalkulator BMI Otomatis:</span>
-      <span style="color:#f1f5f9;font-weight:700;font-size:1rem;">Skor Anda {bmi_val}</span>
+                padding:12px 20px;margin-top:10px;display:flex;align-items:center;gap:12px;">
+      <span style="font-size:1.3rem;">⚖️</span>
+      <span style="color:#94a3b8;font-size:0.85rem;">Kalkulator BMI Otomatis:</span>
+      <span style="color:#f1f5f9;font-weight:700;">Skor Anda {bmi_val}</span>
       <span class="bmi-pill {bmi_css}">— {bmi_cat}</span>
     </div>
     """, unsafe_allow_html=True)
 
+    # ── Jalankan Prediksi ─────────────────────────────────
     if submitted:
         try:
             bmi_val, bmi_cat = calc_bmi(weight_kg, height_cm)
-            bmi_ds  = map_bmi_to_dataset(bmi_cat, le_bmi_enc.classes_)
+            bmi_ds = map_bmi_to_dataset(bmi_cat, le_bmi_enc.classes_)
 
+            # Encode semua input
             gender_enc = le_gen.transform([gender])[0]
             occ_enc    = le_occ.transform([occupation])[0]
             bmi_enc    = le_bmi_enc.transform([bmi_ds])[0]
 
-            # Estimasi BP dari rata-rata dataset (tidak ditampilkan ke user)
-            systolic_est  = int(df["Systolic_BP"].mean())
-            diastolic_est = int(df["Diastolic_BP"].mean())
+            # BP diestimasi dari median dataset (tidak ditampilkan ke user)
+            sys_est = int(df["Systolic_BP"].median())
+            dia_est = int(df["Diastolic_BP"].median())
 
+            # Susun fitur sesuai urutan training PERSIS
+            # ["Age","Sleep_Duration","Quality_of_Sleep","Physical_Activity_Level",
+            #  "Stress_Level","Heart_Rate","Daily_Steps",
+            #  "Systolic_BP","Diastolic_BP","Gender_enc","Occupation_enc","BMI_Category_enc"]
             X_input = np.array([[
-                age, sleep_dur, quality, activity,
-                stress, hr, int(steps),
-                systolic_est, diastolic_est,
-                gender_enc, occ_enc, bmi_enc
-            ]])
+                age,
+                float(sleep_dur),
+                int(quality),
+                int(activity),
+                int(stress),
+                int(hr),
+                int(steps),
+                sys_est,
+                dia_est,
+                int(gender_enc),
+                int(occ_enc),
+                int(bmi_enc),
+            ]], dtype=float)
+
             X_scaled   = scaler.transform(X_input)
             pred_enc   = model.predict(X_scaled)[0]
             pred_label = le_tgt.inverse_transform([pred_enc])[0]
 
+            # Probabilitas
             if hasattr(model, "predict_proba"):
                 proba      = model.predict_proba(X_scaled)[0]
                 proba_dict = dict(zip(le_tgt.classes_, proba))
             else:
-                proba_dict = {c: (1.0 if c == pred_label else 0.0) for c in le_tgt.classes_}
+                proba_dict = {c: (1.0 if c == pred_label else 0.0)
+                              for c in le_tgt.classes_}
 
+            # ── Tampilan Hasil ────────────────────────────
             st.divider()
-            st.subheader("🏁 Hasil Analisis Prediktif AI")
+            st.subheader("♟ Hasil Analisis Prediktif AI")
 
-            info = {
-                "Normal":      ("pred-normal",   "✅ Kondisi Normal (Bebas Gangguan Tidur)",
-                                "Pertahankan konsistensi jam tidur dan aktivitas fisik harian "
-                                "di kisaran 6000–8000 langkah untuk menyokong fase Deep Sleep."),
-                "Insomnia":    ("pred-insomnia",  "⚠️ Terindikasi Insomnia",
-                                "Terapkan sleep hygiene: jadwal tidur teratur, hindari kafein "
-                                "setelah pukul 14.00, dan batasi paparan layar 1 jam sebelum tidur. "
-                                "Konsultasi dokter jika berlanjut lebih dari 3 minggu."),
-                "Sleep Apnea": ("pred-apnea",     "🚨 Terindikasi Sleep Apnea",
-                                "Segera konsultasi ke dokter spesialis tidur (sleep specialist). "
-                                "Sleep apnea perlu penanganan medis — terapi CPAP atau perubahan "
-                                "posisi tidur dapat membantu. Jangan tunda pemeriksaan."),
+            result_info = {
+                "Normal": (
+                    "pred-normal",
+                    "✅ Kondisi Normal (Bebas Gangguan Tidur)",
+                    "Pertahankan konsistensi jam tidur dan aktivitas fisik harian "
+                    "di kisaran 6000–8000 langkah untuk menyokong fase Deep Sleep malam ini."
+                ),
+                "Insomnia": (
+                    "pred-insomnia",
+                    "⚠️ Terindikasi Insomnia",
+                    "Terapkan sleep hygiene yang baik: jadwal tidur teratur, hindari kafein "
+                    "setelah pukul 14.00, dan batasi paparan layar 1 jam sebelum tidur. "
+                    "Konsultasi dokter jika kondisi berlanjut lebih dari 3 minggu."
+                ),
+                "Sleep Apnea": (
+                    "pred-apnea",
+                    "🚨 Terindikasi Sleep Apnea",
+                    "Segera konsultasi ke dokter spesialis tidur (sleep specialist). "
+                    "Sleep apnea memerlukan penanganan medis — terapi CPAP atau penyesuaian "
+                    "posisi tidur dapat sangat membantu. Jangan tunda pemeriksaan."
+                ),
             }
-            css_cls, title_txt, advice = info.get(pred_label, info["Normal"])
+            css_cls, title_txt, advice = result_info.get(pred_label, result_info["Normal"])
 
             st.markdown(f'<div class="pred-box {css_cls}">{title_txt}</div>',
                         unsafe_allow_html=True)
@@ -590,6 +695,7 @@ elif page == "🤖 Prediksi Gangguan Tidur":
                     marker_color=[colors_map.get(k,"#4fc3f7") for k in proba_dict],
                     text=[f"{v*100:.1f}%" for v in proba_dict.values()],
                     textposition="outside",
+                    textfont=dict(color="#f1f5f9"),
                 ))
                 fig_p.update_layout(
                     title="Probabilitas per Kategori",
@@ -599,33 +705,33 @@ elif page == "🤖 Prediksi Gangguan Tidur":
                     font_color="#90a4ae",
                     title_font_color="#81d4fa",
                     height=220,
+                    yaxis=dict(color="#f1f5f9"),
                 )
                 st.plotly_chart(fig_p, use_container_width=True)
 
-                # Smart Recommendation box
                 st.markdown(f"""
                 <div style="background:#111827;border-left:4px solid #f59e0b;
-                            border-radius:8px;padding:16px 20px;margin-top:8px;">
+                            border-radius:8px;padding:16px 20px;">
                   <div style="color:#f59e0b;font-weight:700;margin-bottom:6px;">
                     💡 Smart Recommendation:
                   </div>
-                  <div style="color:#cbd5e1;font-size:0.9rem;">{advice}</div>
+                  <div style="color:#cbd5e1;font-size:0.88rem;">{advice}</div>
                 </div>
                 """, unsafe_allow_html=True)
 
             with c2:
                 st.markdown("**📋 Ringkasan Input:**")
-                bmi_css2 = {"Normal":"bmi-normal","Underweight":"bmi-under",
-                             "Overweight":"bmi-overweight","Obese":"bmi-obese"}.get(bmi_cat,"bmi-normal")
                 summary = pd.DataFrame({
                     "Fitur": ["Gender","Usia","Pekerjaan","BB / TB","BMI",
                               "Durasi Tidur","Kualitas Tidur","Stres",
                               "Aktivitas","Langkah","Detak Jantung"],
-                    "Nilai": [gender, age, occupation,
-                              f"{weight_kg} kg / {height_cm} cm",
-                              f"{bmi_val} ({bmi_cat})",
-                              f"{sleep_dur} jam", quality, stress,
-                              f"{activity} mnt", int(steps), hr]
+                    "Nilai": [
+                        gender, age, occupation,
+                        f"{weight_kg:.1f} kg / {height_cm:.0f} cm",
+                        f"{bmi_val} ({bmi_cat})",
+                        f"{sleep_dur:.1f} jam", quality, stress,
+                        f"{activity} mnt", int(steps), f"{hr} bpm",
+                    ]
                 })
                 st.dataframe(summary, hide_index=True, use_container_width=True)
 
@@ -636,6 +742,7 @@ elif page == "🤖 Prediksi Gangguan Tidur":
 
 # ════════════════════════════════════════════════════════════
 # PAGE 4 — EVALUASI
+# FIX: Metodologi tampil sebagai timeline cards (gambar 5 style)
 # ════════════════════════════════════════════════════════════
 elif page == "📈 Evaluasi Model":
     st.title("📈 Evaluasi Model Machine Learning")
@@ -653,26 +760,25 @@ elif page == "📈 Evaluasi Model":
         use_container_width=True
     )
 
+    LAYOUT = dict(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                  font_color="#90a4ae", title_font_color="#81d4fa")
     c1, c2 = st.columns(2)
     with c1:
         fig_acc = px.bar(df_cmp.reset_index(), x="index", y="Accuracy",
                          color="Accuracy", color_continuous_scale="Viridis",
                          title="Accuracy per Model")
-        fig_acc.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                              font_color="#90a4ae", title_font_color="#81d4fa",
-                              xaxis_tickangle=-30, showlegend=False,
+        fig_acc.update_layout(**LAYOUT, xaxis_tickangle=-30, showlegend=False,
                               xaxis_title="", yaxis_range=[0,1.05])
         st.plotly_chart(fig_acc, use_container_width=True)
     with c2:
         fig_f1 = px.bar(df_cmp.reset_index(), x="index", y="F1-Score (W)",
                         color="F1-Score (W)", color_continuous_scale="Magma",
                         title="F1-Score per Model")
-        fig_f1.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                             font_color="#90a4ae", title_font_color="#81d4fa",
-                             xaxis_tickangle=-30, showlegend=False,
+        fig_f1.update_layout(**LAYOUT, xaxis_tickangle=-30, showlegend=False,
                              xaxis_title="", yaxis_range=[0,1.05])
         st.plotly_chart(fig_f1, use_container_width=True)
 
+    # ── Confusion Matrix ──
     st.subheader(f"🔎 Confusion Matrix — {best_name}")
     y_pred = res[best_name]["y_pred"]
     y_test = res[best_name]["y_test"]
@@ -682,33 +788,54 @@ elif page == "📈 Evaluasi Model":
                        color_continuous_scale="Blues",
                        labels=dict(x="Prediksi", y="Aktual"),
                        title=f"Confusion Matrix — {best_name}")
-    fig_cm.update_layout(paper_bgcolor="rgba(0,0,0,0)", font_color="#90a4ae",
-                         title_font_color="#81d4fa")
+    fig_cm.update_layout(**LAYOUT)
     st.plotly_chart(fig_cm, use_container_width=True)
 
+    # ── Classification Report ──
     st.subheader("📋 Classification Report")
     report = classification_report(y_test, y_pred, target_names=labels, output_dict=True)
     st.dataframe(pd.DataFrame(report).T.round(4), use_container_width=True)
 
     st.divider()
-    st.subheader("📚 Metodologi (10 Pertemuan)")
-    metodologi = {
-        "Pertemuan 1 — Pendahuluan ML":    "Konsep supervised learning, klasifikasi vs regresi, dan pengenalan dataset.",
-        "Pertemuan 2 — Pemahaman Data":    "EDA: distribusi, statistik deskriptif, visualisasi korelasi & pola.",
-        "Pertemuan 3 — Persiapan Data":    "Fill NaN → Normal, encoding, StandardScaler, train-test split.",
-        "Pertemuan 4 — Regresi":           "Logistic Regression sebagai baseline model klasifikasi.",
-        "Pertemuan 5 — Decision Tree":     "Pohon keputusan dengan max_depth=5, Gini impurity.",
-        "Pertemuan 6 — KNN & Naive Bayes": "K-Nearest Neighbors (k=5) dan Gaussian Naive Bayes.",
-        "Pertemuan 7 — SVM":               "Support Vector Machine dengan kernel RBF, probability=True.",
-        "Pertemuan 8 — Ensemble":          "Random Forest (200 trees) dan Gradient Boosting.",
-        "Pertemuan 9 — Optimasi":          "SMOTE untuk imbalanced class, StratifiedKFold cross-validation.",
-        "Pertemuan 10 — Evaluasi":         "Accuracy, F1-Score, Confusion Matrix, Classification Report, perbandingan model.",
-    }
-    for k, v in metodologi.items():
-        with st.expander(f"📌 {k}"):
-            st.write(v)
+
+    # ── Garis Waktu / Timeline Cards (style gambar 5) ──
+    st.subheader("🗺️ Garis Waktu Pengembangan Sistem (10 Tahapan Kerja)")
+    st.markdown(
+        "<p style='color:#64748b;font-size:0.85rem;'>Rangkaian modul integrasi "
+        "backend dan rekayasa data secara berkala:</p>",
+        unsafe_allow_html=True)
+
+    row1 = [
+        ("MODUL 01", "Relational SQL Base",  "Sinkronisasi Skema Data Relasional SQL"),
+        ("MODUL 02", "Data Ingestion",       "Pengumpulan & Pemuatan Data API Kaggle"),
+        ("MODUL 03", "Exploratory Data",     "Analisis Data Eksplorasi (EDA) & Korelasi"),
+        ("MODUL 04", "Data Cleansing",       "Pengolahan, Imputasi & Pembersihan Data"),
+        ("MODUL 05", "Feature Engineering",  "Rekayasa Fitur & Label Encoding Sklearn"),
+    ]
+    row2 = [
+        ("MODUL 06", "Data Visualization",   "Visualisasi Data Interaktif via Plotly"),
+        ("MODUL 07", "Data Splitting",       "Pembagian Data Pelatihan (80:20) & Scaling"),
+        ("MODUL 08", "Model Training",       "Pelatihan Model (RF, LR, SVM, KNN, GBM)"),
+        ("MODUL 09", "Model Evaluation",     "Evaluasi Metriks Akurasi & Confusion Matrix"),
+        ("MODUL 10", "Cloud Deployment",     "Deployment Sistem Cerdas via Streamlit Cloud"),
+    ]
+
+    def render_row(items, row_class=""):
+        cols = st.columns(5)
+        for col, (num, name, desc) in zip(cols, items):
+            with col:
+                st.markdown(f"""
+                <div class="tl-card {row_class}">
+                  <div class="tl-num">{num}</div>
+                  <div class="tl-name">{name}</div>
+                  <div class="tl-desc">{desc}</div>
+                </div>""", unsafe_allow_html=True)
+
+    render_row(row1, "")
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+    render_row(row2, "row2")
 
     st.markdown("""
-    <div style="text-align:center;color:#546e7a;font-size:0.8rem;padding:20px;">
-    🌙 Sleep Disorder Dashboard · Dataset: Kaggle · Built with Streamlit & Scikit-learn
+    <div style="text-align:center;color:#374151;font-size:0.8rem;padding:28px 0 8px;">
+    🌙 Sleep Disorder Dashboard · Kelompok 17 · Dataset: Kaggle · Streamlit & Scikit-learn
     </div>""", unsafe_allow_html=True)
