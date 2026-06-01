@@ -38,178 +38,75 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ─── CSS — LIGHT THEME (putih bersih, teks hitam, selalu terbaca) ───────────
+# ─── CSS ──────────────────────────────────────────────────────
+# Paksa dark mode agar teks selalu terbaca regardless mode system
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+html, body, [class*="css"] { font-family: 'Nunito', sans-serif !important; }
 
-/* ══ RESET: paksa light mode di semua elemen Streamlit ══ */
-html, body,
-.stApp,
-[data-testid="stAppViewContainer"],
-[data-testid="stMain"],
-[data-testid="block-container"],
-section[data-testid="stSidebar"] > div,
-[class*="css"] {
-    font-family: 'Nunito', sans-serif !important;
-    background-color: #ffffff !important;
-    color: #111827 !important;
+/* ── Layout helpers (no color) ── */
+.kpi-section  { border-radius:20px; padding:28px 36px; margin-bottom:20px; border-width:1px; border-style:solid; }
+.kpi-title    { font-size:1.25rem; font-weight:800; margin-bottom:20px; }
+.kpi-grid     { display:flex; gap:0; flex-wrap:wrap; }
+.kpi-item     { flex:1; min-width:130px; border-right-width:1px; border-right-style:solid; padding:0 28px; }
+.kpi-item:first-child { padding-left:0; }
+.kpi-item:last-child  { border-right:none !important; }
+.kpi-label    { font-size:0.75rem; margin-bottom:6px; }
+.kpi-value    { font-size:1.9rem; font-weight:800; line-height:1.1; }
+.kpi-unit     { font-size:0.95rem; margin-left:4px; }
+.proj-card    { border-radius:16px; padding:20px 24px; margin-bottom:16px; border-width:1px; border-style:solid; }
+.proj-card h4 { margin:0 0 12px 0; font-size:1rem; }
+.proj-card p  { margin:4px 0; font-size:0.85rem; line-height:1.6; }
+.tl-card      { border-radius:12px; padding:16px; border-top-width:3px; border-top-style:solid; border-top-color:#22c55e; }
+.tl-card.row2 { border-top-color:#3b82f6; }
+.tl-num       { font-size:0.7rem; font-weight:700; color:#22c55e; letter-spacing:0.08em; margin-bottom:6px; }
+.tl-card.row2 .tl-num { color:#3b82f6; }
+.tl-name      { font-size:0.9rem; font-weight:700; margin-bottom:6px; }
+.tl-desc      { font-size:0.75rem; line-height:1.5; }
+
+/* ── Prediction & BMI pills — warna tetap di dua mode ── */
+.pred-box      { border-radius:14px; padding:22px; text-align:center; font-size:1.4rem; font-weight:800; margin:14px 0; }
+.pred-normal   { background:#14532d !important; color:#86efac !important; border:2px solid #22c55e; }
+.pred-insomnia { background:#3b0764 !important; color:#d8b4fe !important; border:2px solid #a855f7; }
+.pred-apnea    { background:#7f1d1d !important; color:#fca5a5 !important; border:2px solid #ef4444; }
+.bmi-pill      { display:inline-block; padding:5px 16px; border-radius:999px; font-weight:700; font-size:0.85rem; }
+.bmi-normal    { background:#14532d !important; color:#86efac !important; border:1px solid #22c55e; }
+.bmi-overweight{ background:#78350f !important; color:#fcd34d !important; border:1px solid #f59e0b; }
+.bmi-obese     { background:#7f1d1d !important; color:#fca5a5 !important; border:1px solid #ef4444; }
+.bmi-under     { background:#1e3a5f !important; color:#93c5fd !important; border:1px solid #3b82f6; }
+
+/* ── DARK MODE ── */
+@media (prefers-color-scheme: dark) {
+  .kpi-section  { background:linear-gradient(135deg,#111827,#1e2a3a); border-color:#2a4a6e; }
+  .kpi-title    { color:#e2e8f0; } .kpi-label { color:#64748b; }
+  .kpi-value    { color:#f1f5f9; } .kpi-unit  { color:#94a3b8; }
+  .kpi-item     { border-color:#2a4a6e; }
+  .proj-card    { background:#111827; border-color:#2a4a6e; }
+  .proj-card h4 { color:#4fc3f7; } .proj-card p { color:#94a3b8; }
+  .proj-card .highlight { color:#e2e8f0; }
+  .tl-card      { background:#111827; border-color:#1e3a5f; }
+  .tl-name      { color:#f1f5f9; } .tl-desc { color:#64748b; }
 }
-
-/* Sidebar — abu-abu sangat muda */
-[data-testid="stSidebar"] {
-    background-color: #f3f4f6 !important;
-    border-right: 1px solid #e5e7eb !important;
-}
-[data-testid="stSidebar"] *,
-[data-testid="stSidebar"] label,
-[data-testid="stSidebar"] p,
-[data-testid="stSidebar"] span,
-[data-testid="stSidebar"] div {
-    color: #111827 !important;
-    background-color: transparent !important;
-}
-
-/* Header stripe */
-[data-testid="stHeader"] {
-    background-color: #ffffff !important;
-}
-
-/* Semua teks & heading */
-h1, h2, h3, h4, h5, h6 { color: #111827 !important; }
-p, li, span, label, div { color: #111827 !important; }
-
-/* Input, textarea, select */
-input, textarea, select,
-[data-baseweb="input"] input,
-[data-baseweb="textarea"] textarea,
-[data-baseweb="select"] [role="listbox"],
-[data-baseweb="select"] [data-value] {
-    background-color: #f9fafb !important;
-    color: #111827 !important;
-    border: 1px solid #d1d5db !important;
-}
-/* Number input */
-[data-testid="stNumberInput"] input { color: #111827 !important; }
-
-/* Slider & selectbox label */
-[data-testid="stSlider"] label,
-[data-testid="stSelectbox"] label,
-[data-testid="stNumberInput"] label {
-    color: #374151 !important;
-}
-
-/* DataFrames */
-[data-testid="stDataFrame"] * {
-    color: #111827 !important;
-    background-color: #ffffff !important;
+/* ── LIGHT MODE ── */
+@media (prefers-color-scheme: light) {
+  .kpi-section  { background:#f8fafc; border-color:#e2e8f0; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+  .kpi-title    { color:#1e293b; } .kpi-label { color:#64748b; }
+  .kpi-value    { color:#0f172a; } .kpi-unit  { color:#475569; }
+  .kpi-item     { border-color:#e2e8f0; }
+  .proj-card    { background:#f8fafc; border-color:#e2e8f0; }
+  .proj-card h4 { color:#0369a1; } .proj-card p { color:#475569; }
+  .proj-card .highlight { color:#0f172a; }
+  .tl-card      { background:#f8fafc; border-color:#e2e8f0; }
+  .tl-name      { color:#0f172a; } .tl-desc { color:#64748b; }
 }
 
 /* Tabs */
-.stTabs [data-baseweb="tab-list"] {
-    background-color: #f3f4f6 !important;
-    border-radius: 10px;
-    padding: 4px;
-}
-.stTabs [data-baseweb="tab"] {
-    background: transparent;
-    border-radius: 8px;
-    color: #6b7280 !important;
-    padding: 8px 20px;
-    border: none !important;
-    font-weight: 600;
-}
+.stTabs [data-baseweb="tab"] { border-radius:8px; padding:8px 20px; }
 .stTabs [aria-selected="true"] {
-    background: #1d4ed8 !important;
-    color: #ffffff !important;
-    border-radius: 8px !important;
+  background:linear-gradient(135deg,#1565c0,#0d47a1) !important;
+  color:white !important;
 }
-
-/* ── KPI section ── */
-.kpi-section {
-    background: linear-gradient(135deg, #eff6ff, #dbeafe);
-    border: 1px solid #bfdbfe;
-    border-radius: 20px;
-    padding: 28px 36px;
-    margin-bottom: 20px;
-}
-.kpi-title {
-    font-size: 1.25rem; font-weight: 800;
-    color: #1e3a8a; margin-bottom: 20px;
-}
-.kpi-grid { display: flex; gap: 0; flex-wrap: wrap; }
-.kpi-item {
-    flex: 1; min-width: 130px;
-    border-right: 1px solid #bfdbfe;
-    padding: 0 28px;
-}
-.kpi-item:first-child { padding-left: 0; }
-.kpi-item:last-child  { border-right: none; }
-.kpi-label { font-size: 0.75rem; color: #6b7280; margin-bottom: 6px; }
-.kpi-value { font-size: 1.9rem; font-weight: 800; color: #111827; line-height: 1.1; }
-.kpi-unit  { font-size: 0.95rem; color: #6b7280; margin-left: 4px; }
-
-/* ── Project Info card ── */
-.proj-card {
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    border-radius: 16px;
-    padding: 20px 24px;
-    margin-bottom: 16px;
-}
-.proj-card h4 { color: #1d4ed8; margin: 0 0 12px 0; font-size: 1rem; }
-.proj-card p  { color: #4b5563; margin: 4px 0; font-size: 0.85rem; line-height: 1.6; }
-.proj-card .highlight { color: #111827; font-weight: 700; }
-
-/* ── Timeline cards ── */
-.tl-card {
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 16px;
-    border-top: 3px solid #16a34a;
-}
-.tl-card.row2 { border-top-color: #2563eb; }
-.tl-num  { font-size: 0.7rem; font-weight: 700; color: #16a34a; letter-spacing: 0.08em; margin-bottom: 6px; }
-.tl-card.row2 .tl-num { color: #2563eb; }
-.tl-name { font-size: 0.9rem; font-weight: 700; color: #111827; margin-bottom: 6px; }
-.tl-desc { font-size: 0.75rem; color: #6b7280; line-height: 1.5; }
-
-/* ── Prediction box ── */
-.pred-box {
-    border-radius: 14px; padding: 22px; text-align: center;
-    font-size: 1.4rem; font-weight: 800; margin: 14px 0;
-}
-.pred-normal   { background: #dcfce7; color: #15803d; border: 2px solid #22c55e; }
-.pred-insomnia { background: #f3e8ff; color: #7e22ce; border: 2px solid #a855f7; }
-.pred-apnea    { background: #fee2e2; color: #b91c1c; border: 2px solid #ef4444; }
-
-/* ── BMI pill ── */
-.bmi-pill {
-    display: inline-block; padding: 5px 16px;
-    border-radius: 999px; font-weight: 700; font-size: 0.85rem;
-}
-.bmi-normal     { background: #dcfce7; color: #15803d; border: 1px solid #22c55e; }
-.bmi-overweight { background: #fef3c7; color: #b45309; border: 1px solid #f59e0b; }
-.bmi-obese      { background: #fee2e2; color: #b91c1c; border: 1px solid #ef4444; }
-.bmi-under      { background: #dbeafe; color: #1d4ed8; border: 1px solid #3b82f6; }
-
-/* Sidebar model badge */
-.sidebar-badge {
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
-    border-radius: 12px;
-    padding: 14px 16px;
-}
-.sidebar-badge .badge-label { color: #d97706; font-weight: 700; font-size: 0.85rem; }
-.sidebar-badge .badge-name  { color: #1d4ed8; font-weight: 800; font-size: 0.95rem; margin: 4px 0; }
-.sidebar-badge .badge-acc   { color: #16a34a; font-size: 0.85rem; }
-
-/* Footer */
-.footer-txt { text-align: center; color: #9ca3af; font-size: 0.8rem; padding: 28px 0 8px; }
-
-/* Divider */
-hr { border-color: #e5e7eb !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -385,15 +282,10 @@ best_acc   = artifacts["models"][best_name]["acc"]
 
 # ─── Sidebar ──────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("""
-    <div style="padding: 4px 0 8px 0;">
-      <div style="font-size:1.3rem;font-weight:800;color:#111827;line-height:1.2;">
-        🌙 Klasifikasi Gangguan Tidur
-      </div>
-      <div style="font-size:0.78rem;color:#6b7280;margin-top:4px;line-height:1.4;">
-        Machine Learning Berdasarkan Data Kesehatan & Gaya Hidup
-      </div>
-    </div>""", unsafe_allow_html=True)
+    st.markdown("## 🌙 Klasifikasi Gangguan Tidur")
+    st.markdown(
+        "<small style='color:#94a3b8;'>Machine Learning Berdasarkan Data Kesehatan & Gaya Hidup</small>",
+        unsafe_allow_html=True)
     st.divider()
     page = st.radio("📌 Navigasi", [
         "🏠 Beranda",
@@ -403,10 +295,10 @@ with st.sidebar:
     ])
     st.divider()
     st.markdown(f"""
-    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:14px 16px;">
-      <div style="color:#d97706;font-weight:700;font-size:0.85rem;">🏆 Model Terbaik:</div>
-      <div style="color:#1d4ed8;font-weight:800;font-size:0.95rem;margin:4px 0;">{best_name}</div>
-      <div style="color:#16a34a;font-size:0.85rem;">✅ Akurasi: {best_acc:.2%}</div>
+    <div style="background:#1e2a3a;border:1px solid #2a4a6e;border-radius:12px;padding:14px 16px;">
+      <div style="color:#f59e0b;font-weight:700;font-size:0.85rem;">🏆 Model Terbaik:</div>
+      <div style="color:#4fc3f7;font-weight:800;font-size:0.95rem;margin:4px 0;">{best_name}</div>
+      <div style="color:#22c55e;font-size:0.85rem;">✅ Akurasi: {best_acc:.2%}</div>
     </div>""", unsafe_allow_html=True)
     st.caption("Dataset: Sleep Health & Lifestyle | Kaggle")
 
@@ -415,16 +307,10 @@ with st.sidebar:
 # PAGE 1 — BERANDA
 # ════════════════════════════════════════════════════════════
 if page == "🏠 Beranda":
-    st.markdown("""
-    <div style="margin-bottom: 4px;">
-      <h1 style="font-size:2rem;font-weight:800;color:#111827;margin:0;line-height:1.2;">
-        🌙 Klasifikasi Gangguan Tidur
-      </h1>
-      <p style="color:#6b7280;font-size:0.95rem;margin:6px 0 0 0;">
-        Machine Learning Berdasarkan Data Kesehatan &amp; Gaya Hidup
-      </p>
-    </div>
-    """, unsafe_allow_html=True)
+    st.title("🌙 Klasifikasi Gangguan Tidur")
+    st.markdown(
+        "<span style='color:#94a3b8;font-size:0.9rem;'>Machine Learning Berdasarkan Data Kesehatan & Gaya Hidup</span>",
+        unsafe_allow_html=True)
     st.divider()
 
     # ── KPI Ringkasan ──
@@ -472,7 +358,7 @@ if page == "🏠 Beranda":
              Klasifikasi Gangguan Tidur Menggunakan Machine Learning<br>
              Berdasarkan Data Kesehatan dan Gaya Hidup</p>
           <p style="margin-top:10px;"><span class="highlight">Sumber Dataset:</span><br>
-             Kaggle Core API — <code style="color:#1d4ed8;font-size:0.8rem;">uom190346a/sleep-health-and-lifestyle-dataset</code></p>
+             Kaggle Core API — <code style="color:#4fc3f7;font-size:0.8rem;">uom190346a/sleep-health-and-lifestyle-dataset</code></p>
           <p style="margin-top:10px;"><span class="highlight">Final Project:</span> Kelompok 17</p>
           <p style="margin-top:8px;"><span class="highlight">Anggota:</span><br>
              • Priya Novitasari Dwi Yanti<br>
@@ -497,15 +383,15 @@ if page == "🏠 Beranda":
         fig_pie = px.pie(
             values=[n_normal, n_insomnia, n_apnea],
             names=["Normal", "Insomnia", "Sleep Apnea"],
-            color_discrete_sequence=["#16a34a","#7c3aed","#dc2626"],
+            color_discrete_sequence=["#22c55e","#a855f7","#ef4444"],
             title="Distribusi Sleep Disorder",
             hole=0.45,
         )
         fig_pie.update_layout(
             paper_bgcolor="rgba(0,0,0,0)",
-            font_color="#374151",
-            title_font_color="#111827",
-            legend=dict(font=dict(color="#374151")),
+            font_color="#90a4ae",
+            title_font_color="#81d4fa",
+            legend=dict(font=dict(color="#90a4ae")),
         )
         st.plotly_chart(fig_pie, use_container_width=True)
 
@@ -519,9 +405,9 @@ elif page == "📊 EDA & Visualisasi":
 
     t1, t2, t3, t4 = st.tabs(["📋 Overview", "📈 Distribusi", "🔗 Korelasi", "🧩 Pola Kelompok"])
 
-    COLORS = ["#16a34a","#7c3aed","#dc2626"]
-    LAYOUT = dict(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="#f9fafb",
-                  font_color="#374151", title_font_color="#111827")
+    COLORS = ["#22c55e","#a855f7","#ef4444"]
+    LAYOUT = dict(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                  font_color="#90a4ae", title_font_color="#81d4fa")
 
     with t1:
         c1, c2 = st.columns(2)
@@ -660,11 +546,11 @@ elif page == "🤖 Prediksi Gangguan Tidur":
     bmi_css = {"Normal":"bmi-normal","Underweight":"bmi-under",
                "Overweight":"bmi-overweight","Obese":"bmi-obese"}.get(bmi_cat,"bmi-normal")
     st.markdown(f"""
-    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;
+    <div style="background:#111827;border:1px solid #2a4a6e;border-radius:12px;
                 padding:12px 20px;margin-top:10px;display:flex;align-items:center;gap:12px;">
       <span style="font-size:1.3rem;">⚖️</span>
-      <span style="color:#6b7280;font-size:0.85rem;">Kalkulator BMI Otomatis:</span>
-      <span style="color:#111827;font-weight:700;">Skor Anda {bmi_val}</span>
+      <span style="color:#94a3b8;font-size:0.85rem;">Kalkulator BMI Otomatis:</span>
+      <span style="color:#f1f5f9;font-weight:700;">Skor Anda {bmi_val}</span>
       <span class="bmi-pill {bmi_css}">— {bmi_cat}</span>
     </div>
     """, unsafe_allow_html=True)
@@ -748,35 +634,35 @@ elif page == "🤖 Prediksi Gangguan Tidur":
 
             c1, c2 = st.columns([3, 2])
             with c1:
-                colors_map = {"Normal":"#16a34a","Insomnia":"#7c3aed","Sleep Apnea":"#dc2626"}
+                colors_map = {"Normal":"#22c55e","Insomnia":"#a855f7","Sleep Apnea":"#ef4444"}
                 fig_p = go.Figure(go.Bar(
                     x=list(proba_dict.values()),
                     y=list(proba_dict.keys()),
                     orientation="h",
-                    marker_color=[colors_map.get(k,"#2563eb") for k in proba_dict],
+                    marker_color=[colors_map.get(k,"#4fc3f7") for k in proba_dict],
                     text=[f"{v*100:.1f}%" for v in proba_dict.values()],
                     textposition="outside",
-                    textfont=dict(color="#111827"),
+                    textfont=dict(color="#f1f5f9"),
                 ))
                 fig_p.update_layout(
                     title="Probabilitas per Kategori",
                     xaxis_range=[0, 1.2],
                     paper_bgcolor="rgba(0,0,0,0)",
-                    plot_bgcolor="#f9fafb",
-                    font_color="#374151",
-                    title_font_color="#111827",
+                    plot_bgcolor="rgba(0,0,0,0)",
+                    font_color="#90a4ae",
+                    title_font_color="#81d4fa",
                     height=220,
-                    yaxis=dict(color="#111827"),
+                    yaxis=dict(color="#f1f5f9"),
                 )
                 st.plotly_chart(fig_p, use_container_width=True)
 
                 st.markdown(f"""
-                <div style="background:#fffbeb;border-left:4px solid #f59e0b;
+                <div style="background:#111827;border-left:4px solid #f59e0b;
                             border-radius:8px;padding:16px 20px;">
-                  <div style="color:#b45309;font-weight:700;margin-bottom:6px;">
+                  <div style="color:#f59e0b;font-weight:700;margin-bottom:6px;">
                     💡 Smart Recommendation:
                   </div>
-                  <div style="color:#374151;font-size:0.88rem;">{advice}</div>
+                  <div style="color:#cbd5e1;font-size:0.88rem;">{advice}</div>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -821,8 +707,8 @@ elif page == "📈 Evaluasi Model":
         use_container_width=True
     )
 
-    LAYOUT = dict(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="#f9fafb",
-                  font_color="#374151", title_font_color="#111827")
+    LAYOUT = dict(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                  font_color="#90a4ae", title_font_color="#81d4fa")
     c1, c2 = st.columns(2)
     with c1:
         fig_acc = px.bar(df_cmp.reset_index(), x="index", y="Accuracy",
@@ -897,6 +783,6 @@ elif page == "📈 Evaluasi Model":
     render_row(row2, "row2")
 
     st.markdown("""
-    <div class="footer-txt">
+    <div style="text-align:center;color:#374151;font-size:0.8rem;padding:28px 0 8px;">
     🌙 Sleep Disorder Dashboard · Kelompok 17 · Dataset: Kaggle · Streamlit & Scikit-learn
     </div>""", unsafe_allow_html=True)
